@@ -12,7 +12,6 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/user", authRouter);
 
-
 // 404 Handler for non-existant routes
 app.use((req, res) => {
     res.status(404).send();
