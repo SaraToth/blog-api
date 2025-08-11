@@ -51,5 +51,6 @@ model Comment {
   postId Int @map("post_id")
   content String @db.Text
   createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   @@map("comments")
 }
