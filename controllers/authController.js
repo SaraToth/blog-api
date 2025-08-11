@@ -75,6 +75,10 @@ const validateLogin = [
         .notEmpty().withMessage("Must enter a password"),
 ];
 
+const getLandingPage = (req, res) => {
+    return res.send("get home");
+};
+
 const getSignup = (req, res) => {
     return res.send("Get signup");
 };
@@ -105,10 +109,33 @@ const postLogin = [
         if (!errors.isEmpty()) {
             return res.status(400).send();
         }
-        return res.send("post login")
-    })
+
+        const { email, password } = req.body;
+
+        const user = await prisma.user.findUnique({
+            where: { email: email }
+        });
+
+        if (!user) {
+            return res.status(401).send("Invalid email or password");
+        }
+
+        const isMatch = await bcryt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).send("Invalid email or password");
+        }
+
+        const token = jwt.sign(
+            { sub: user.id },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );
+
+        res.json({token});
+    }),
+
 ];
 
 
 
-module.exports = { getSignup, getLogin, postSignup, postLogin };
+module.exports = { getSignup, getLogin, postSignup, postLogin, getLandingPage };
