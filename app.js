@@ -3,6 +3,7 @@ const app = express();
 require("dotenv");
 
 // Route Imports
+const indexRouter = require("./routes/indexRouer");
 const authRouter = require("./routes/authRouter");
 
 // General Middlewares
@@ -11,6 +12,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/user", authRouter);
+app.use("/", indexRouter);
 
 // 404 Handler for non-existant routes
 app.use((req, res) => {

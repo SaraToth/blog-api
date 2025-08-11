@@ -75,10 +75,6 @@ const validateLogin = [
         .notEmpty().withMessage("Must enter a password"),
 ];
 
-const getLandingPage = (req, res) => {
-    return res.send("get home");
-};
-
 const getSignup = (req, res) => {
     return res.send("Get signup");
 };
@@ -138,4 +134,4 @@ const postLogin = [
 
 
 
-module.exports = { getSignup, getLogin, postSignup, postLogin, getLandingPage };
+module.exports = { getSignup, getLogin, postSignup, postLogin };

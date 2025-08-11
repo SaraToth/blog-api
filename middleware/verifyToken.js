@@ -1,4 +1,4 @@
-const passport = require("./config/passport");
+const passport = require("../config/passport");
 
 const verifyToken = passport.authenticate("jwt", { session: false});
 
