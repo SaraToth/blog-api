@@ -4,6 +4,7 @@ const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
+const e = require("express");
 
 const toProperNoun = (rawName) => {
     return rawName
@@ -91,7 +92,21 @@ const postSignup = [
         if (!errors.isEmpty()) {
             return res.status(400).send();
         }
-        return res.send("post signup");
+        
+        const { firstName, lastName, email, password  } = req.body;
+        const hashedPassword = await bcryt.hash(password, 10);
+
+        await prisma.user.create({
+            data: {
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                password: hashedPassword,
+                type: "READER",
+            }
+        });
+
+        res.redirect("/user/login");
     }),
 ]
 
