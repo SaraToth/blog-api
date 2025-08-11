@@ -11,9 +11,9 @@ Run the following to install all dependencies:
 npm install
 ```
 
-## Schema Setup
+### Schema and Authentication Setup
 
-You will need to create your own psql database, and then update the .env-template with your database URL information
+You will need to create your own psql database, and then update the .env-template with your database URL information, you can also add your own secret as the JWT_SECRET
 
 Then you can run the following to setup the tables in your database:
 ```
@@ -51,3 +51,58 @@ While the current project is designed to only allow one admin user, and multiple
 - **Comment**
     - id, content, createdAt
     - Relationships: user = user who posted the comment, post = the blog post the comment is responding to
+
+
+## JSON Web Tokens and Authentication
+
+In this project, I set up JSON web tokens using the
+[passport-jwt strategy](https://www.passportjs.org/packages/passport-jwt/)
+
+First, json web token was configurated.
+```js
+const options = {
+    jwtFromRequest: extractJWT.fromAuthHeaderAsBearerToken(),
+    secretOrKey: process.env.JWT_SECRET,
+};
+
+passport.use(
+    new jwtStrategy(options, async (jwt_payload, done) => {
+        try {
+            const user = await prisma.user.findUnique({
+                where: {
+                    id: jwt_payload.sub
+                }
+            });
+            if (user) {
+                return done(null, user);
+            } else {
+                return done(null, false);
+            }
+        } catch (error) {
+            return done(error, false);
+        }
+    })
+);
+```
+
+
+When users login succesfully a jwt is signed with the user's information.
+
+```js
+    const token = jwt.sign(
+        { sub: user.id },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+    );
+
+    res.json({token});
+```
+
+Then the token can be verified with the verifyToken middleware function.
+```js
+const passport = require("../config/passport");
+
+const verifyToken = passport.authenticate("jwt", { session: false});
+```
+
+Then this middleware is attached as the first middleware in the chain, for all protected routes.
