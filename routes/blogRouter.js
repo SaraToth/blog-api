@@ -9,7 +9,7 @@ const { getPost, getBlogHome, writePost, editPost, deletePost } = require("../co
 blogRouter.use("/", verifyToken);
 
 // Nested route for comments
-blogRouter.use("/comments", commentRouter);
+blogRouter.use("/:postTitle/comments", commentRouter);
 
 // View individual blog post 
 blogRouter.get("/:postTitle", getPost);
