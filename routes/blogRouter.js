@@ -1,22 +1,23 @@
 const { Router } = require("express");
 const blogRouter = Router();
 const verifyToken = require("../middleware/verifyToken");
-const { getPost, getBlogHome, writePost, editPost, deletePost, postComment, editComment } = require("../controllers/blogController");
+const commentRouter = require("./commentRouter");
+const isAdmin = require("../middleware/isAdmin");
+const { getPost, getBlogHome, writePost, editPost, deletePost } = require("../controllers/blogController");
 
 // Protect ALL Blog routes with json web token
-// blogRouter.use("/", verifyToken);
+blogRouter.use("/", verifyToken);
 
-// ANY USER - Post or edit blog comments
-blogRouter.post("/:postTitle/comment", postComment);
-blogRouter.patch("/:postTitle/:commentId", editComment);
+// Nested route for comments
+blogRouter.use("/comments", commentRouter);
 
-// View blog post 
+// View individual blog post 
 blogRouter.get("/:postTitle", getPost);
 
-// ADMIN ONLY - manage blog posts
-blogRouter.post("/:postTitle", writePost);
-blogRouter.delete("/:postTitle", deletePost);
-blogRouter.patch("/:postTitle", editPost);
+// Write, delete or change blog posts - ADMIN only
+blogRouter.post("/", isAdmin, writePost);
+blogRouter.delete("/:postTitle", isAdmin, deletePost);
+blogRouter.patch("/:postTitle", isAdmin, editPost);
 
 // Blog home
 blogRouter.get("/", getBlogHome)
