@@ -2,7 +2,6 @@ const bcryt = require("bcryptjs");
 const prisma = require("../prisma/client");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const toProperNoun = require("../utils/toProperNoun");
 
