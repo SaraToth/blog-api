@@ -87,12 +87,30 @@ const getBlogHome = async (req, res) => {
 };
 
 // Get individual blog post
-const getPost = (req, res) => {
+const getPost = async (req, res) => {
+    const userId = req.user?.id;
     const { postTitle } = req.params;
+    const sluggedTitle = slugifyText(postTitle);
 
     // Find the post in database
+    const post = await prisma.post.findFirst({
+        where: {
+            authorId: userId,
+            slug: sluggedTitle
+        },
+        select: {
+            title: true,
+            content: true,
+            slug: true,
+            createdAt: true,
+            updatedAt: true,
+        }
+    });
 
     // If post doesn't exist - send error status code #?
+    if (!post) {
+        return res.status(404).send("File Not Found");
+    }
 
     // Pass post as json data
     return res.status(200).json({ post });
