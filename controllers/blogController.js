@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const alphaLetterSpaceSymbols = /^[a-zA-Z0-9 %&$#@!?,.\-_]+$/;
 const toProperNoun = require("../utils/toProperNoun");
+const slugifyText = require("../utils/slugifyText");
 const prisma = require("../prisma/client");
 
 const validateNewPost = [
@@ -96,12 +97,16 @@ const writePost = [
         // Get form data
         const { postTitle, postContent } = req.body;
 
+        // Slug the title
+        const sluggedTitle = slugifyText(postTitle);
+
         // Add the post to the database with the authorInfo
         await prisma.post.create({
             data: {
                 authorId: userId,
                 title: postTitle,
-                content: postContent
+                content: postContent,
+                slug: sluggedTitle
             }
         });
 
@@ -116,24 +121,47 @@ const editPost = [
 
     asyncHandler(async (req, res) => {
 
-        // handle form validation errors
+        // Handle form validation errors
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.sendStatus(400);
         }
 
         const userId = req.user?.id;
-        const { postTitle } = req.params;
+        const sluggedTitle = req.params.postTitle;
+
         const { newTitle, newContent } = req.body;
 
         // get the post info
+        const originalPost = await prisma.post.findFirst({
+            where: {
+                authorId: userId,
+                slug: sluggedTitle
+            }
+        });
 
         // If the post doesn't exist -> 404 error
+        if (!originalPost) {
+            res.sendStatus(404);
+        }
+
+        // Slug the title
+        const newSluggedTitle = slugifyText(newTitle);
 
         // If post does exist: update the post title, and content
+        await prisma.post.update({
+            where: {
+                id: originalPost.id
+            },
+            data: {
+                title: newTitle,
+                content: newContent,
+                slug: newSluggedTitle
+            }
+        });
 
         // Send a success code to the front end.
-        return res.send(`Edit ${postTitle}`);
+        return res.sendStatus(200);
     }),
 ];
 
