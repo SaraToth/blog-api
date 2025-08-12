@@ -91,7 +91,9 @@ const editComment = [
         // Find the original comment
         const originalComment = await prisma.comment.findUnique({
             where: {
-                id: commentId
+                id: commentId,
+                userId: userId,
+                postId: post.id
             }
         });
 
