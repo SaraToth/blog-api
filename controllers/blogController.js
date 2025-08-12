@@ -1,35 +1,154 @@
+const asyncHandler = require("express-async-handler");
+const { body, validationResult } = require("express-validator");
+const alphaLetterSpaceSymbols = /^[a-zA-Z0-9 %&$#@!?,.\-_]+$/;
+const toProperNoun = require("../utils/toProperNoun");
+const prisma = require("../prisma/client");
+
+const validateNewPost = [
+    body("postTitle")
+        .trim()
+        .matches(alphaLetterSpaceSymbols).withMessage("Invalid characters")
+        .isLength({ min: 1, max: 70 }).withMessage("Title must be between 1-70 characters long.")
+        .customSanitizer(toProperNoun) // Converts to database naming convention
+        .custom( async (formTitle, {req}) => {
+            const userId = req.user?.id;
+            const existingUser = await prisma.post.findFirst({
+                where: {
+                    authorId: userId,
+                    title: formTitle
+                }
+            });
+
+            if (existingUser) {
+                throw new Error("You already have a post with this name");
+            }
+        })
+        .escape(),
+
+    body("postContent")
+        .trim()
+        .escape()
+];
+
+const validateEditPost = [
+    body("newTitle")
+        .trim()
+        .matches(alphaLetterSpaceSymbols).withMessage("Invalid characters")
+        .isLength({ min: 1, max: 70 }).withMessage("Title must be between 1-70 characters long.")
+        .customSanitizer(toProperNoun) // Converts to database naming convention
+        .custom( async (formTitle, {req}) => {
+            const userId = req.user?.id;
+            const existingUser = await prisma.post.findFirst({
+                where: {
+                    authorId: userId,
+                    title: formTitle
+                }
+            });
+
+            if (existingUser) {
+                throw new Error("You already have a post with this name");
+            }
+        })
+        .escape(),
+
+    body("newContent")
+        .trim()
+        .escape()
+];
+
+
+// Get all blog posts to display
+const getBlogHome = (req, res) => {
+
+    // Get all blog posts
+
+    // Pass the blog posts as json data
+    return res.status(200).json({ posts: [] });
+};
+
+// Get individual blog post
 const getPost = (req, res) => {
     const { postTitle } = req.params;
-    return res.send("Get Individual post")
+
+    // Find the post in database
+
+    // If post doesn't exist - send error status code #?
+
+    // Pass post as json data
+    return res.status(200).json({ post });
 };
 
-const getBlogHome = (req, res) => {
-    return res.send("Blog home");
-};
+// Create new blog post
+const writePost = [
+    validateNewPost,
 
-const writePost = (req, res) => {
-    const { postTitle } = req.params;
-    return res.send("Write post");
-};
+    asyncHandler(async (req, res) => {
 
-const editPost = (req, res) => {
-    const { postTitle } = req.params;
-    return res.send("Edit Post");
-};
+        // Handle validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.sendStatus(400);
+        }
 
+        // Get user info from token
+        const userId = req.user?.id;
+
+        // Get form data
+        const { postTitle, postContent } = req.body;
+
+        // Add the post to the database with the authorInfo
+        await prisma.post.create({
+            data: {
+                authorId: userId,
+                title: postTitle,
+                content: postContent
+            }
+        });
+
+        // Send a success message to frontend that it worked
+        return res.sendStatus(200);
+    }),
+];
+
+// Edit blog post
+const editPost = [
+    validateEditPost,
+
+    asyncHandler(async (req, res) => {
+
+        // handle form validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.sendStatus(400);
+        }
+
+        const userId = req.user?.id;
+        const { postTitle } = req.params;
+        const { newTitle, newContent } = req.body;
+
+        // get the post info
+
+        // If the post doesn't exist -> 404 error
+
+        // If post does exist: update the post title, and content
+
+        // Send a success code to the front end.
+        return res.send(`Edit ${postTitle}`);
+    }),
+];
+
+// Delete blog post
 const deletePost = (req, res) => {
+    const userId = req.user?.id;
     const { postTitle } = req.params;
-    return res.send("delete post");
+
+    // Try to delete post based on that title/user
+
+    // Catch errors
+
+    // Send success status code to front end
+    return res.send(`Delete ${postTitle}`);
 };
 
-const postComment = (req, res) => {
-    const { postTitle } = req.params;
-    return res.send("post comment");
-};
 
-const editComment = (req, res) => {
-    const { postTitle, commentId } = req.params;
-    return res.send("edit comment");
-};
-
-module.exports = { getPost, getBlogHome, writePost, editPost, deletePost, postComment, editComment };
+module.exports = { getPost, getBlogHome, writePost, editPost, deletePost };
