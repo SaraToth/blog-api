@@ -19,7 +19,8 @@ passport.use(
                     id: true,
                     firstName: true,
                     lastName: true,
-                    email: true
+                    email: true,
+                    type: true,
                 }
             });
             if (user) {
