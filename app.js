@@ -5,12 +5,14 @@ require("dotenv");
 // Route Imports
 const indexRouter = require("./routes/indexRouer");
 const authRouter = require("./routes/authRouter");
+const blogRouter = require("./routes/blogRouter");
 
 // General Middlewares
 app.use(express.json()); // Parse incoming JSON payloads
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.use("/blog", blogRouter);
 app.use("/user", authRouter);
 app.use("/", indexRouter);
 
