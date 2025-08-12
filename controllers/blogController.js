@@ -203,16 +203,33 @@ const editPost = [
 ];
 
 // Delete blog post
-const deletePost = (req, res) => {
+const deletePost = async (req, res) => {
     const userId = req.user?.id;
     const { postTitle } = req.params;
+    const sluggedTitle = slugifyText(postTitle);
 
-    // Try to delete post based on that title/user
+    // Find unique postId
+    const post = await prisma.post.findFirst({
+        where: {
+            authorId: userId,
+            slug: sluggedTitle
+        }
+    });
 
-    // Catch errors
+    // If post doesn't exist
+    if (!post) {
+        return res.status(404).send("File not found");
+    } 
+
+    // Delete post with the uniqueID
+    await prisma.post.delete({
+        where: {
+            id: post.id
+        }
+    });
 
     // Send success status code to front end
-    return res.send(`Delete ${postTitle}`);
+    return res.status(200).send("Deleted file");
 };
 
 
