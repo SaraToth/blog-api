@@ -35,6 +35,7 @@ model Post {
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId Int @map("author_id")
   title String
+  slug String @unique
   content String @db.Text
   comments Comment[]
   createdAt DateTime @default(now()) @map("created_at")
