@@ -4,7 +4,6 @@ const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
-const e = require("express");
 
 const toProperNoun = (rawName) => {
     return rawName
@@ -74,6 +73,13 @@ const validateLogin = [
     body("password")
         .trim()
         .notEmpty().withMessage("Must enter a password"),
+];
+
+const validateAdminPassword = [
+    body("adminPassword")
+    .trim()
+    .isAlphanumeric().withMessage("Admin code must only contain letters and numbers")
+    .isLength({ min: 32, max: 32}).withMessage("Admin code is 32 characters long"),
 ];
 
 const getSignup = (req, res) => {
@@ -147,6 +153,37 @@ const postLogin = [
 
 ];
 
+const changeMemberType = [
+    validateAdminPassword,
+
+    asyncHandler(async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).send();
+        }
+
+        // Clean user provided password to all caps
+        const adminPassword = req.body.adminPassword.toUpperCase();
+        const userId = req.user?.id;
+
+        // Update user member type if code is correct
+        if ( adminPassword === process.env.ADMIN_CODE) {
+            await prisma.user.update({
+                where: {
+                    id: userId,
+                },
+                data: {
+                    type: "ADMIN",
+                },
+            });
+
+            return res.status(200).json({ success: true });
+        } else {
+            res.status(403).send("Your admin access code is incorrect");
+        }
+    }),
+];
 
 
-module.exports = { getSignup, getLogin, postSignup, postLogin };
+
+module.exports = { getSignup, getLogin, postSignup, postLogin, changeMemberType };
