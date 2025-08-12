@@ -6,8 +6,6 @@ const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const toProperNoun = require("../utils/toProperNoun");
 
-
-
 const validateSignup = [
     body("firstName")
         .trim()
