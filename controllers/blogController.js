@@ -4,6 +4,7 @@ const alphaLetterSpaceSymbols = /^[a-zA-Z0-9 %&$#@!?,.\-_]+$/;
 const toProperNoun = require("../utils/toProperNoun");
 const slugifyText = require("../utils/slugifyText");
 const prisma = require("../prisma/client");
+const { authenticate } = require("passport");
 
 const validateNewPost = [
     body("postTitle")
@@ -59,12 +60,30 @@ const validateEditPost = [
 
 
 // Get all blog posts to display
-const getBlogHome = (req, res) => {
+const getBlogHome = async (req, res) => {
+    const userId = req.user?.id;
 
     // Get all blog posts
+    const posts = await prisma.post.findMany({
+        where: {
+            authorId: userId
+        },
+        select: {
+            title: true,
+            slug: true,
+            content: true,
+            createdAt: true,
+            updatedAt: true,
+        }
+    });
+
+    // If posts is empty:
+    if (posts.length === 0) {
+        return res.send(400).send("There are no posts");
+    }
 
     // Pass the blog posts as json data
-    return res.status(200).json({ posts: [] });
+    return res.status(200).json({ posts: posts });
 };
 
 // Get individual blog post
