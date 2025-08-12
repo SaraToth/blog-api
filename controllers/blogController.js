@@ -4,7 +4,6 @@ const alphaLetterSpaceSymbols = /^[a-zA-Z0-9 %&$#@!?,.\-_]+$/;
 const toProperNoun = require("../utils/toProperNoun");
 const slugifyText = require("../utils/slugifyText");
 const prisma = require("../prisma/client");
-const { authenticate } = require("passport");
 
 const validateNewPost = [
     body("postTitle")
@@ -60,7 +59,7 @@ const validateEditPost = [
 
 
 // Get all blog posts to display
-const getBlogHome = async (req, res) => {
+const getBlogHome = asyncHandler(async (req, res) => {
     const userId = req.user?.id;
 
     // Get all blog posts
@@ -84,10 +83,10 @@ const getBlogHome = async (req, res) => {
 
     // Pass the blog posts as json data
     return res.status(200).json({ posts: posts });
-};
+});
 
 // Get individual blog post
-const getPost = async (req, res) => {
+const getPost = asyncHandler (async (req, res) => {
     const userId = req.user?.id;
     const { postTitle } = req.params;
     const sluggedTitle = slugifyText(postTitle);
@@ -114,7 +113,7 @@ const getPost = async (req, res) => {
 
     // Pass post as json data
     return res.status(200).json({ post });
-};
+});
 
 // Create new blog post
 const writePost = [
@@ -203,7 +202,7 @@ const editPost = [
 ];
 
 // Delete blog post
-const deletePost = async (req, res) => {
+const deletePost = asyncHandler(async (req, res) => {
     const userId = req.user?.id;
     const { postTitle } = req.params;
     const sluggedTitle = slugifyText(postTitle);
@@ -230,7 +229,7 @@ const deletePost = async (req, res) => {
 
     // Send success status code to front end
     return res.status(200).send("Deleted file");
-};
+});
 
 
 module.exports = { getPost, getBlogHome, writePost, editPost, deletePost };
