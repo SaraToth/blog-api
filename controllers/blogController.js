@@ -62,10 +62,11 @@ const validateEditPost = [
 const getBlogHome = asyncHandler(async (req, res) => {
     const userId = req.user?.id;
 
-    // Get all blog posts
+    // Get all published blog posts
     const posts = await prisma.post.findMany({
         where: {
-            authorId: userId
+            authorId: userId,
+            status: "PUBLISHED"
         },
         select: {
             title: true,
@@ -91,11 +92,12 @@ const getPost = asyncHandler (async (req, res) => {
     const { postTitle } = req.params;
     const sluggedTitle = slugifyText(postTitle);
 
-    // Find the post in database
+    // Find the published post in database
     const post = await prisma.post.findFirst({
         where: {
             authorId: userId,
-            slug: sluggedTitle
+            slug: sluggedTitle,
+            status: "PUBLISHED"
         },
         select: {
             title: true,
@@ -142,7 +144,8 @@ const writePost = [
                 authorId: userId,
                 title: postTitle,
                 content: postContent,
-                slug: sluggedTitle
+                slug: sluggedTitle,
+                status: "PUBLISHED"
             }
         });
 
@@ -172,7 +175,8 @@ const editPost = [
         const originalPost = await prisma.post.findFirst({
             where: {
                 authorId: userId,
-                slug: sluggedTitle
+                slug: sluggedTitle,
+                status: "PUBLISHED"
             }
         });
 
