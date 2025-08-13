@@ -18,6 +18,11 @@ enum UserType {
   READER
 }
 
+enum postStatus {
+  PUBLISHED
+  DRAFT
+}
+
 model User {
   id  Int @id @default(autoincrement())
   type UserType
@@ -37,6 +42,7 @@ model Post {
   title String
   slug String @unique
   content String @db.Text
+  status postStatus
   comments Comment[]
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
