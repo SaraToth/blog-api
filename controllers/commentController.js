@@ -17,6 +17,40 @@ const validateEditComment = [
         .escape()
 ];
 
+const getComments = asyncHandler(async (req, res) => {
+
+    const sluggedTitle = req.params.postTitle;
+
+    // Find matching post
+    const post = await prisma.post.findUnique({
+        where: {
+            slug: sluggedTitle
+        }
+    });
+
+    // If no post send an error
+    if (!post) {
+        return res.status(404).send("File not found");
+    }
+
+    // Find all comments with the post id
+    const comments = await prisma.comment.findMany({
+        where: {
+            postId: post.id
+        },
+        select: {
+            id: true,
+            content: true,
+            postId: true,
+            createdAt: true,
+            updatedAt: true
+        }
+    });
+
+    // Send comments as json data
+    return res.status(200).json({ comments });
+});
+
 const postComment = [
     validatePostComment,
 
@@ -116,4 +150,4 @@ const editComment = [
     })
 ];
 
-module.exports = { postComment, editComment };
+module.exports = { getComments, postComment, editComment };
