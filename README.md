@@ -46,6 +46,7 @@ While the current project is designed to only allow one admin user, and multiple
 
 - **Post**
     - id, title, content, createdAt
+    - slug: a slugged version of the title used as parameter to route to posts
     - Relationships: author = the admin user, comments = comments left by other members
 
 - **Comment**
@@ -58,7 +59,8 @@ While the current project is designed to only allow one admin user, and multiple
 In this project, I set up JSON web tokens using the
 [passport-jwt strategy](https://www.passportjs.org/packages/passport-jwt/)
 
-First, json web token was configurated.
+First, json web token was configurated, and we select for data that we might need (excluding sensitive data such as password)
+
 ```js
 const options = {
     jwtFromRequest: extractJWT.fromAuthHeaderAsBearerToken(),
@@ -70,7 +72,11 @@ passport.use(
         try {
             const user = await prisma.user.findUnique({
                 where: {
-                    id: jwt_payload.sub
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    type: true,
                 }
             });
             if (user) {
@@ -106,3 +112,21 @@ const verifyToken = passport.authenticate("jwt", { session: false});
 ```
 
 Then this middleware is attached as the first middleware in the chain, for all protected routes.
+
+## Middlewares
+
+- **isAdmin** - verifies that the user has ADMIN user_type before allowing them to do protected actions like write, edit or delete blog posts. Currently, this project is designed to work with only 1 ADMIN user.
+
+- **isAuthor** - verifies that the comment author, matches the user data stored in the JSON web token before allowing a user to edit their comments. (Ensures the user is the author of that comment).
+
+- **verifyToken** - verifiies the JSON webtoken, and checks for authorization on protected routes.
+
+## Errors
+
+400 Bad Request - This means that client-side input fails validation.
+401 Unauthorized - This means the user isn't not authorized to access a resource. It usually returns when the user isn't authenticated.
+403 Forbidden - This means the user is authenticated, but it's not allowed to access a resource.
+404 Not Found - This indicates that a resource is not found.
+500 Internal server error - This is a generic server error. It probably shouldn't be thrown explicitly.
+502 Bad Gateway - This indicates an invalid response from an upstream server.
+503 Service Unavailable - This indicates that something unexpected happened on server side (It can be anything like server overload, some parts of the system failed, etc.).
