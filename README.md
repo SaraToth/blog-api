@@ -40,12 +40,17 @@ While the current project is designed to only allow one admin user, and multiple
     - ADMIN: Blog owner. Will be able to write/delete blog posts, as well as delete comments made by other users.
     - MEMBER: Can view blog posts and their corresponding comments as well as leave comments. Can only edit or delete their own comments.
 
+- **Enum: postStatus**
+    - PUBLISHED: Posts that are published and visible to every authorized user.
+    - DRAFT: Posts that have not been published but saved in the db by the ADMIN (author) and only visible to them.
+
 - **User**
     - id, firstName lastName, email, password, type
     - Relationships: posts, comments; Only an admin will have posts while all users can post comments
 
 - **Post**
     - id, title, content, createdAt
+    - postStatus: Whether a post is published or a draft.
     - slug: a slugged version of the title used as parameter to route to posts
     - Relationships: author = the admin user, comments = comments left by other members
 
@@ -120,13 +125,3 @@ Then this middleware is attached as the first middleware in the chain, for all p
 - **isAuthor** - verifies that the comment author, matches the user data stored in the JSON web token before allowing a user to edit their comments. (Ensures the user is the author of that comment).
 
 - **verifyToken** - verifiies the JSON webtoken, and checks for authorization on protected routes.
-
-## Errors
-
-400 Bad Request - This means that client-side input fails validation.
-401 Unauthorized - This means the user isn't not authorized to access a resource. It usually returns when the user isn't authenticated.
-403 Forbidden - This means the user is authenticated, but it's not allowed to access a resource.
-404 Not Found - This indicates that a resource is not found.
-500 Internal server error - This is a generic server error. It probably shouldn't be thrown explicitly.
-502 Bad Gateway - This indicates an invalid response from an upstream server.
-503 Service Unavailable - This indicates that something unexpected happened on server side (It can be anything like server overload, some parts of the system failed, etc.).
