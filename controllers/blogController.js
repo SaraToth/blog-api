@@ -69,6 +69,7 @@ const getBlogHome = asyncHandler(async (req, res) => {
             status: "PUBLISHED"
         },
         select: {
+            id: true,
             title: true,
             slug: true,
             content: true,
@@ -78,7 +79,7 @@ const getBlogHome = asyncHandler(async (req, res) => {
     });
 
     // Pass the blog posts as json data
-    return res.status(200).json({ posts });
+    return res.status(200).json(posts);
 });
 
 // Get individual blog post
