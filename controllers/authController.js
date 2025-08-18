@@ -106,7 +106,7 @@ const postSignup = [
             }
         });
 
-        res.redirect("/user/login");
+        return res.status(200).json({ message: "Signup successful" });
     }),
 ]
 
