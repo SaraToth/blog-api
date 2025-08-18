@@ -77,13 +77,8 @@ const getBlogHome = asyncHandler(async (req, res) => {
         }
     });
 
-    // If posts is empty:
-    if (posts.length === 0) {
-        return res.status(400).send("There are no posts");
-    }
-
     // Pass the blog posts as json data
-    return res.status(200).json({ posts: posts });
+    return res.status(200).json({ posts });
 });
 
 // Get individual blog post
