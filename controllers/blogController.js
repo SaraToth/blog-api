@@ -110,7 +110,7 @@ const getPost = asyncHandler (async (req, res) => {
     }
 
     // Pass post as json data
-    return res.status(200).json({ post });
+    return res.status(200).json(post);
 });
 
 // Create new blog post
