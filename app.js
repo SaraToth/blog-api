@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const cors = require("cors");
 require("dotenv");
 
 // Route Imports
@@ -8,6 +9,12 @@ const authRouter = require("./routes/authRouter");
 const blogRouter = require("./routes/blogRouter");
 
 // General Middlewares
+app.use(
+    cors({
+        origin: "http://localhost:5173",
+        credentials: true,
+    })
+);
 app.use(express.json()); // Parse incoming JSON payloads
 app.use(express.urlencoded({ extended: true }));
 
