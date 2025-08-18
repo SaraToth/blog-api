@@ -4,6 +4,7 @@ const alphaLetterSpaceSymbols = /^[a-zA-Z0-9 %&$#@!?,.\-_]+$/;
 const toProperNoun = require("../utils/toProperNoun");
 const slugifyText = require("../utils/slugifyText");
 const prisma = require("../prisma/client");
+const getAdminId = require("../utils/getAdminId");
 
 const validateNewPost = [
     body("postTitle")
@@ -60,12 +61,12 @@ const validateEditPost = [
 
 // Get all blog posts to display
 const getBlogHome = asyncHandler(async (req, res) => {
-    const userId = req.user?.id;
+    const adminId = getAdminId();
 
     // Get all published blog posts
     const posts = await prisma.post.findMany({
         where: {
-            authorId: userId,
+            authorId: adminId,
             status: "PUBLISHED"
         },
         select: {
@@ -84,14 +85,14 @@ const getBlogHome = asyncHandler(async (req, res) => {
 
 // Get individual blog post
 const getPost = asyncHandler (async (req, res) => {
-    const userId = req.user?.id;
+    const adminId = getAdminId();
     const { postTitle } = req.params;
     const sluggedTitle = slugifyText(postTitle);
 
     // Find the published post in database
     const post = await prisma.post.findFirst({
         where: {
-            authorId: userId,
+            authorId: adminId,
             slug: sluggedTitle,
             status: "PUBLISHED"
         },
@@ -103,11 +104,6 @@ const getPost = asyncHandler (async (req, res) => {
             updatedAt: true,
         }
     });
-
-    // If post doesn't exist - send error status code #?
-    if (!post) {
-        return res.status(404).send("File Not Found");
-    }
 
     // Pass post as json data
     return res.status(200).json(post);
