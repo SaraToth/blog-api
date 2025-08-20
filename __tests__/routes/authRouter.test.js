@@ -3,28 +3,26 @@ const request = require("supertest");
 const express = require("express");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const prisma = require("../../prisma/client");
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false}));
 app.use("/user", authRouter);
 
-// Mock a JSON web token
-const token = jwt.sign(
-  { id: 22, email: "bella@example.com" },
-  process.env.JWT_SECRET,
-  { expiresIn: "1h" }
-);
+let mockId;
+let mockEmail;
+
 
 // Mock the verifyToken function
 jest.mock("../../middleware/verifyToken", () => (req, res, next) => {
-  req.user = { id: 22, email: "bella@example.com" };
+  req.user = { id: mockId, email: mockEmail };
   next();
 });
 
 describe("POST /user/signup", () => {
-    it("responds with JSON", done => {
-        request(app)
+    it("responds with JSON", async() => {
+        await request(app)
         .post("/user/signup")
         .send({
             firstName: "Bella",
@@ -34,7 +32,24 @@ describe("POST /user/signup", () => {
             confirmPassword: "Alphabeta3$"
         })
         .expect("Content-Type", /json/)
-        .expect(200, done);
+        .expect(200);
+
+        // Find user in database
+        const user = await prisma.user.findUnique({
+            where: { email: "bella@example.com"},
+        });
+
+        console.log(user);
+        mockId = user.id;
+        mockEmail = user.email;
+
+        // Use actual user id to sign mock token
+        const token = jwt.sign(
+            { id: user.id, email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );
+
     });
 
     it("fails when data is missing", async() => {
@@ -135,7 +150,7 @@ describe("PATCH /user/member-type", () => {
         await request(app)
             .patch("/user/member-type")
             .send({
-                adminCode: "32857EIJG"
+                adminPassword: "32857EIJG"
             })
             .expect(400);
     })
@@ -151,3 +166,14 @@ describe("PATCH /user/member-type", () => {
         expect(response.body.errors).toBe("Your admin access code is incorrect");
     })
 })
+
+afterAll( async() => {
+    await prisma.user.delete({
+        where: {
+            email: "bella@example.com"
+        }
+    })
+
+    mockId = ""
+    mockEmail = ""
+});
