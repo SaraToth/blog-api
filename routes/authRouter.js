@@ -3,10 +3,10 @@ const authRouter = Router();
 const { postSignup, postLogin, changeMemberType } = require("../controllers/authController");
 const verifyToken = require("../middleware/verifyToken");
 
-// Signup routes
+// Signup
 authRouter.post("/signup", postSignup);
 
-// Login routes
+// Login
 authRouter.post("/login", postLogin)
 
 // Update membership
