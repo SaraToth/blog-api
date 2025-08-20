@@ -76,14 +76,6 @@ const validateAdminPassword = [
     .isLength({ min: 32, max: 32}).withMessage("Admin code is 32 characters long"),
 ];
 
-const getSignup = (req, res) => {
-    return res.send("Get signup");
-};
-
-const getLogin = (req, res) => {
-    return res.send("Get login");
-};
-
 const postSignup = [
     validateSignup,
 
@@ -180,4 +172,4 @@ const changeMemberType = [
 
 
 
-module.exports = { getSignup, getLogin, postSignup, postLogin, changeMemberType };
+module.exports = { postSignup, postLogin, changeMemberType };
