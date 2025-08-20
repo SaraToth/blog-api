@@ -2,30 +2,25 @@ const authRouter = require("../../routes/authRouter");
 const request = require("supertest");
 const express = require("express");
 const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false}));
 app.use("/user", authRouter);
 
-// payload for the token
-const payload = {
-  id: 22,             // user id
-  email: "bella@example.com",
-  type: "READER",     // whatever role you use
-};
+// Mock a JSON web token
+const token = jwt.sign(
+  { id: 22, email: "bella@example.com" },
+  process.env.JWT_SECRET,
+  { expiresIn: "1h" }
+);
 
-// secret key (same as in your app)
-const secret = process.env.JWT_SECRET;
-
-// options (optional)
-const options = {
-  expiresIn: "1h",
-};
-
-// generate token
-const token = jwt.sign(payload, secret, options);
-
+// Mock the verifyToken function
+jest.mock("../../middleware/verifyToken", () => (req, res, next) => {
+  req.user = { id: 22, email: "bella@example.com" };
+  next();
+});
 
 describe("POST /user/signup", () => {
     it("responds with JSON", done => {
@@ -112,5 +107,47 @@ describe("POST /user/login", () => {
             .expect(401);
         
         expect(response.body.errors).toBe("Invalid email or password");
+    })
+})
+
+describe("PATCH /user/member-type", () => {
+    it("Successfully updates to ADMIN", async() => {
+        const adminCode = process.env.ADMIN_CODE;
+        
+        await request(app)
+            .patch("/user/member-type")
+            .send({
+                adminPassword: adminCode
+            })
+            .expect(200);
+    })
+
+    it("fails if admin code is missing", async() => {
+        await request(app)
+            .patch("/user/member-type")
+            .send({
+                adminCode: ""
+            })
+            .expect(400);
+    })
+
+    it("fails if admin code is incorrect length", async() => {
+        await request(app)
+            .patch("/user/member-type")
+            .send({
+                adminCode: "32857EIJG"
+            })
+            .expect(400);
+    })
+    it("fails if admin code is validated but incorrect", async() => {
+        const response = await request(app)
+        .patch("/user/member-type")
+            .send({
+                adminPassword: "1234567890EJEIW8GWKE8W8E87GWNGKE"
+            })
+            .expect(403);
+        
+        // Expect invalid code error
+        expect(response.body.errors).toBe("Your admin access code is incorrect");
     })
 })
