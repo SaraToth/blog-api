@@ -40,6 +40,7 @@ const validateSignup = [
     body("confirmPassword")
         .trim()
         .notEmpty().withMessage("Must type password a second time.")
+        .bail()
         .custom((value, {req}) => {
             if (value !== req.body.password) {
                 throw new Error("Passwords do not match");
@@ -82,7 +83,7 @@ const postSignup = [
     asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).send();
+            return res.status(400).json({ errors: errors.array() });
         }
         
         const { firstName, lastName, email, password  } = req.body;
@@ -110,7 +111,7 @@ const postLogin = [
     asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).send();
+            return res.status(400).json({ errors: errors.array()});
         }
 
         const { email, password } = req.body;
@@ -119,13 +120,14 @@ const postLogin = [
             where: { email: email }
         });
 
+        // If somehow the user doesn't exist after validation
         if (!user) {
-            return res.status(401).send("Invalid email or password");
+            return res.status(400).json({ errors: "Bad request" });
         }
 
         const isMatch = await bcryt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(401).send("Invalid email or password");
+            return res.status(401).json({ errors: "Invalid email or password" });
         }
 
         const token = jwt.sign(
@@ -145,7 +147,7 @@ const changeMemberType = [
     asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).send();
+            return res.status(400).json({ errors: errors.array()});
         }
 
         // Clean user provided password to all caps
@@ -163,9 +165,9 @@ const changeMemberType = [
                 },
             });
 
-            return res.status(200).json({ success: true });
+            return res.sendStatus(200);
         } else {
-            res.status(403).send("Your admin access code is incorrect");
+            res.status(403).json({ errors: "Your admin access code is incorrect" });
         }
     }),
 ];
