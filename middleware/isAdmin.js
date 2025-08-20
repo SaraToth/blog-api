@@ -4,7 +4,7 @@ const isAdmin = (req, res, next) => {
     if (memberType === "ADMIN") {
         return next();
     } else {
-        return res.status(403).send("Denied: You do not have admin access");
+        return res.status(403).json({ errors: "Denied: You do not have admin access"});
     }
 };
 

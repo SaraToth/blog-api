@@ -38,8 +38,7 @@ describe("POST /user/signup", () => {
         const user = await prisma.user.findUnique({
             where: { email: "bella@example.com"},
         });
-
-        console.log(user);
+        
         mockId = user.id;
         mockEmail = user.email;
 

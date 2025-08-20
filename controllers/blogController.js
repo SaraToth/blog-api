@@ -29,6 +29,7 @@ const validateNewPost = [
 
     body("postContent")
         .trim()
+        .notEmpty()
         .escape()
 ];
 
@@ -118,7 +119,7 @@ const writePost = [
         // Handle validation errors
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.sendStatus(400);
+            return res.status(400).json({ errors: errors.array()});
         }
 
         // Get user info from token
@@ -213,7 +214,7 @@ const deletePost = asyncHandler(async (req, res) => {
 
     // If post doesn't exist
     if (!post) {
-        return res.status(404).send("File not found");
+        return res.status(404).json({ errors: "File not found"});
     } 
 
     // Delete post with the uniqueID
@@ -224,7 +225,7 @@ const deletePost = asyncHandler(async (req, res) => {
     });
 
     // Send success status code to front end
-    return res.status(200).send("Deleted file");
+    return res.sendStatus(200);
 });
 
 
